@@ -16,4 +16,4 @@ Slip Payment Notes App based on web
     └── ...
 
 ## Set up Supabase
-    $ npx run base:init -- --project-id '$PROJECT_ID'
+    $ npx run update-types -- --project-id '$PROJECT_ID'
