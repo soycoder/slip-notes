@@ -1,12 +1,45 @@
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
 import styles from '@/styles/Home.module.css'
 import Supabase from '@/pages/supabase'
+import Tesseract from '@/public/lib/tesseract.js'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+  const [text, setText] = useState('')
+  const [imagePath, setImagePath] = useState('')
+
+  // useEffect(() => {
+  // }, [])
+
+  // @Function
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement> | null | undefined,
+  ) => {
+    setImagePath(URL.createObjectURL(event?.currentTarget?.files[0]))
+  }
+  const handleClick = () => {
+    Tesseract.recognize(imagePath, 'eng', {
+      corePath: 'lib/tesseract.js-core/tesseract-core.wasm.js',
+      workerPath: 'lib/tesseract.js/dist/worker.min.js',
+      logger: (m) => console.log(m),
+    })
+      .catch((err) => {
+        console.error(err)
+      })
+      .then((result) => {
+        // Get Confidence score
+        // let confidence = result.confidence
+        console.log(result)
+
+        let text = result.data.text
+        setText(text)
+      })
+  }
+
   return (
     <>
       <Head>
@@ -42,6 +75,21 @@ export default function Home() {
         <h1 className={styles.center}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
+
+        <br />
+        <h3>Actual imagePath uploaded</h3>
+        <img src={imagePath} className="App-image" alt="logo" width="200px" />
+
+        <h3>Extracted text</h3>
+        <div className="text-box">
+          <p> {text} </p>
+        </div>
+        <input type="file" onChange={handleChange} />
+        <button onClick={handleClick} style={{ height: 50 }}>
+          convert to text
+        </button>
+        <br />
+
         <Supabase />
         <div className={styles.center}>
           <Image
