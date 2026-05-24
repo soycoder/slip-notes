@@ -1,7 +1,7 @@
 # SlipNotes
 
 <p align="center">
-  <img src="./assets/icon.png" alt="SlipNotes" width="120" />
+  <img src="https://raw.githubusercontent.com/soycoder/slip-notes/main/assets/icon.png" alt="SlipNotes" width="120" />
 </p>
 
 A React Native app (Expo) for photographing Thai bank transfer slips, automatically extracting the amount, recipient, and date via on-device OCR, and tracking expenses over time.
