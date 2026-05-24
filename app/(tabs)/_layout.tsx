@@ -34,21 +34,21 @@ export default function TabLayout() {
         name="archive"
         options={{
           title: 'Archive',
-          tabBarIcon={() => <TabIcon emoji="📦" label="Archive" />},
+          tabBarIcon: (_p) => <TabIcon emoji="📦" label="Archive" />,
         }}
       />
       <Tabs.Screen
         name="trash"
         options={{
           title: 'Trash',
-          tabBarIcon={() => <TabIcon emoji="🗑️" label="Trash" />},
+          tabBarIcon: (_p) => <TabIcon emoji="🗑️" label="Trash" />,
         }}
       />
       <Tabs.Screen
         name="expenses"
         options={{
           title: 'Expenses',
-          tabBarIcon={() => <TabIcon emoji="💳" label="Expenses" />},
+          tabBarIcon: (_p) => <TabIcon emoji="💳" label="Expenses" />,
         }}
       />
     </Tabs>

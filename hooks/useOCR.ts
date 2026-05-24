@@ -32,7 +32,7 @@ export function useOCR() {
       // Inject average ML Kit confidence
       if (parsed.data && result.blocks.length > 0) {
         const avgConf =
-          result.blocks.reduce((sum: number, b: { confidence?: number }) => sum + (b.confidence ?? 0.9), 0) /
+          result.blocks.reduce((sum: number, b) => sum + ((b as { confidence?: number }).confidence ?? 0.9), 0) /
           result.blocks.length
         parsed.data.confidence = avgConf
       }
