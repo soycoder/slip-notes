@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Note, NoteColor, NoteType } from '@/types/note'
 import type { SlipData } from '@/types/slip'
 import { storage } from '@/lib/storage'
@@ -18,12 +18,14 @@ export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
 
-  useEffect(() => {
+  const load = useCallback(() => {
     storage.loadNotes().then((loaded) => {
       setNotes(loaded)
       setIsLoaded(true)
     })
   }, [])
+
+  useEffect(() => { load() }, [])
 
   const persist = useCallback(async (updated: Note[], changed?: Note) => {
     setNotes(updated)
@@ -33,9 +35,9 @@ export function useNotes() {
     }
   }, [user])
 
-  const activeNotes = notes.filter((n) => !n.isArchived && !n.isDeleted)
-  const archivedNotes = notes.filter((n) => n.isArchived && !n.isDeleted)
-  const trashedNotes = notes.filter((n) => n.isDeleted)
+  const activeNotes = useMemo(() => notes.filter((n) => !n.isArchived && !n.isDeleted), [notes])
+  const archivedNotes = useMemo(() => notes.filter((n) => n.isArchived && !n.isDeleted), [notes])
+  const trashedNotes = useMemo(() => notes.filter((n) => n.isDeleted), [notes])
 
   const createNote = useCallback(
     (partial: {
@@ -135,12 +137,15 @@ export function useNotes() {
     persist(updated)
   }, [notes, persist])
 
+  const reload = useCallback(() => { load() }, [load])
+
   return {
     notes,
     activeNotes,
     archivedNotes,
     trashedNotes,
     isLoaded,
+    reload,
     createNote,
     updateNote,
     deleteNote,

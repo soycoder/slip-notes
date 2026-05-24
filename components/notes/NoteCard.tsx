@@ -1,6 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { Swipeable } from 'react-native-gesture-handler'
 import { useRouter } from 'expo-router'
 import { formatDistanceToNow } from 'date-fns'
+import { useRef } from 'react'
 import type { Note } from '@/types/note'
 import { NOTE_COLORS } from '@/constants/colors'
 import { TagChip } from './TagChip'
@@ -29,6 +31,7 @@ export function NoteCard({
 }: Props) {
   const { theme, colors } = useTheme()
   const router = useRouter()
+  const swipeRef = useRef<Swipeable>(null)
   const noteColor = NOTE_COLORS[note.color]?.[theme] ?? NOTE_COLORS.default[theme]
 
   const timeAgo = (() => {
@@ -45,76 +48,109 @@ export function NoteCard({
     }
   }
 
-  return (
-    <Pressable
-      onPress={handlePress}
-      style={[
-        styles.card,
-        SHADOW.sm,
-        {
-          backgroundColor: noteColor.bg,
-          borderColor: noteColor.border,
-        },
-      ]}
-    >
-      {note.isPinned && <Text style={styles.pin}>📌</Text>}
-
-      {note.title ? (
-        <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={2}>
-          {note.title}
-        </Text>
-      ) : null}
-
-      {note.content ? (
-        <Text style={[styles.content, { color: colors.textSecondary }]} numberOfLines={8}>
-          {note.content}
-        </Text>
-      ) : null}
-
-      {note.type === 'slip' && note.slipData && (
-        <View style={[styles.slipBadge, { backgroundColor: colors.accentLight }]}>
-          <Text style={[styles.slipAmount, { color: colors.accent }]}>
-            ฿{note.slipData.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-          </Text>
-          <Text style={[styles.slipBank, { color: colors.textSecondary }]}>
-            → {note.slipData.recipientBank}
-          </Text>
+  function renderRightActions() {
+    if (isTrash) {
+      return (
+        <View style={styles.swipeActions}>
+          <Pressable
+            style={[styles.swipeAction, { backgroundColor: colors.accent }]}
+            onPress={() => { swipeRef.current?.close(); onRestore?.(note.id) }}
+          >
+            <Text style={styles.swipeActionText}>↩{'\n'}Restore</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.swipeAction, { backgroundColor: colors.danger }]}
+            onPress={() => { swipeRef.current?.close(); onDelete?.(note.id) }}
+          >
+            <Text style={styles.swipeActionText}>🗑{'\n'}Delete</Text>
+          </Pressable>
         </View>
-      )}
-
-      {note.tags.length > 0 && (
-        <View style={styles.tagsRow}>
-          {note.tags.slice(0, 3).map((tag) => (
-            <TagChip key={tag} label={tag} />
-          ))}
-          {note.tags.length > 3 && (
-            <Text style={[styles.moreTags, { color: colors.textMuted }]}>+{note.tags.length - 3}</Text>
-          )}
-        </View>
-      )}
-
-      <View style={styles.footer}>
-        <Text style={[styles.time, { color: colors.textMuted }]}>{timeAgo}</Text>
-        <View style={styles.actions}>
-          {isTrash ? (
-            <>
-              <ActionBtn label="↩" onPress={() => onRestore?.(note.id)} color={colors.textSecondary} />
-              <ActionBtn label="🗑" onPress={() => onDelete?.(note.id)} color={colors.danger} />
-            </>
-          ) : (
-            <>
-              <ActionBtn label={note.isPinned ? '📌' : '📍'} onPress={() => onTogglePin?.(note.id)} color={colors.textMuted} />
-              {note.isArchived ? (
-                <ActionBtn label="📤" onPress={() => onUnarchive?.(note.id)} color={colors.textMuted} />
-              ) : (
-                <ActionBtn label="📦" onPress={() => onArchive?.(note.id)} color={colors.textMuted} />
-              )}
-              <ActionBtn label="🗑" onPress={() => onDelete?.(note.id)} color={colors.textMuted} />
-            </>
-          )}
-        </View>
+      )
+    }
+    return (
+      <View style={styles.swipeActions}>
+        <Pressable
+          style={[styles.swipeAction, { backgroundColor: colors.border }]}
+          onPress={() => {
+            swipeRef.current?.close()
+            note.isArchived ? onUnarchive?.(note.id) : onArchive?.(note.id)
+          }}
+        >
+          <Text style={styles.swipeActionText}>{note.isArchived ? '📤' : '📦'}{'\n'}{note.isArchived ? 'Unarchive' : 'Archive'}</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.swipeAction, { backgroundColor: colors.danger }]}
+          onPress={() => { swipeRef.current?.close(); onDelete?.(note.id) }}
+        >
+          <Text style={styles.swipeActionText}>🗑{'\n'}Delete</Text>
+        </Pressable>
       </View>
-    </Pressable>
+    )
+  }
+
+  return (
+    <Swipeable ref={swipeRef} renderRightActions={renderRightActions} overshootRight={false} friction={2}>
+      <Pressable
+        onPress={handlePress}
+        style={[
+          styles.card,
+          SHADOW.sm,
+          {
+            backgroundColor: noteColor.bg,
+            borderColor: noteColor.border,
+          },
+        ]}
+      >
+        {note.isPinned && <Text style={styles.pin}>📌</Text>}
+
+        {note.title ? (
+          <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={2}>
+            {note.title}
+          </Text>
+        ) : null}
+
+        {note.content ? (
+          <Text style={[styles.content, { color: colors.textSecondary }]} numberOfLines={8}>
+            {note.content}
+          </Text>
+        ) : null}
+
+        {note.type === 'slip' && note.slipData && (
+          <View style={[styles.slipBadge, { backgroundColor: colors.accentLight }]}>
+            <Text style={[styles.slipAmount, { color: colors.accent }]}>
+              ฿{note.slipData.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            </Text>
+            <Text style={[styles.slipBank, { color: colors.textSecondary }]}>
+              → {note.slipData.recipientBank}
+            </Text>
+          </View>
+        )}
+
+        {note.tags.length > 0 && (
+          <View style={styles.tagsRow}>
+            {note.tags.slice(0, 3).map((tag) => (
+              <TagChip key={tag} label={tag} />
+            ))}
+            {note.tags.length > 3 && (
+              <Text style={[styles.moreTags, { color: colors.textMuted }]}>+{note.tags.length - 3}</Text>
+            )}
+          </View>
+        )}
+
+        <View style={styles.footer}>
+          <Text style={[styles.time, { color: colors.textMuted }]}>{timeAgo}</Text>
+          <View style={styles.actions}>
+            {!isTrash && (
+              <ActionBtn
+                label={note.isPinned ? '📌' : '📍'}
+                onPress={() => onTogglePin?.(note.id)}
+                color={colors.textMuted}
+              />
+            )}
+          </View>
+        </View>
+      </Pressable>
+    </Swipeable>
   )
 }
 
@@ -152,4 +188,13 @@ const styles = StyleSheet.create({
   time: { fontSize: FONT_SIZE.xs },
   actions: { flexDirection: 'row', gap: SPACING.xs },
   actionBtn: { padding: 4 },
+  swipeActions: { flexDirection: 'row', marginBottom: SPACING.md },
+  swipeAction: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 72,
+    borderRadius: RADIUS.lg,
+    marginLeft: SPACING.xs,
+  },
+  swipeActionText: { fontSize: FONT_SIZE.xs, color: '#fff', textAlign: 'center', fontWeight: FONT_WEIGHT.medium },
 })

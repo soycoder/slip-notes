@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import Toast from 'react-native-toast-message'
-import { useNotes } from '@/hooks/useNotes'
+import { useNotesContext } from '@/context/NotesContext'
 import { ColorPicker } from '@/components/notes/ColorPicker'
 import { TagChip } from '@/components/notes/TagChip'
 import { useTheme } from '@/context/ThemeContext'
@@ -23,7 +23,7 @@ import { FONT_SIZE, FONT_WEIGHT, RADIUS, SPACING } from '@/constants/theme'
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { colors } = useTheme()
-  const { notes, updateNote, deleteNote } = useNotes()
+  const { notes, updateNote, deleteNote } = useNotesContext()
   const router = useRouter()
 
   const note = notes.find((n) => n.id === id)

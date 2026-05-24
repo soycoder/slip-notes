@@ -45,7 +45,7 @@ export const storage = {
         type: n.type ?? 'note',
       }))
       const allNotes: Note[] = [
-        ...oldNotes.map((n: Note) => ({ type: 'note' as const, isDeleted: false, deletedAt: null, ...n })),
+        ...oldNotes.map((n: Note) => ({ ...n, type: n.type ?? ('note' as const), isDeleted: false, deletedAt: null })),
         ...trashNotes,
       ]
       await AsyncStorage.setItem(NOTES_KEY, JSON.stringify(allNotes))

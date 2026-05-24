@@ -1,7 +1,7 @@
 import { View, FlatList, StyleSheet, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useState } from 'react'
-import { useNotes } from '@/hooks/useNotes'
+import { useNotesContext } from '@/context/NotesContext'
 import { useSearch } from '@/hooks/useSearch'
 import { NoteCard } from '@/components/notes/NoteCard'
 import { SearchBar } from '@/components/ui/SearchBar'
@@ -11,7 +11,7 @@ import { SPACING, FONT_SIZE, FONT_WEIGHT } from '@/constants/theme'
 
 export default function ArchiveScreen() {
   const { colors } = useTheme()
-  const { archivedNotes, deleteNote, unarchiveNote } = useNotes()
+  const { archivedNotes, deleteNote, unarchiveNote } = useNotesContext()
   const [query, setQuery] = useState('')
   const results = useSearch(archivedNotes, query)
 

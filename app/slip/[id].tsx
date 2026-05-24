@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, Image, Pressable } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { format } from 'date-fns'
-import { useNotes } from '@/hooks/useNotes'
+import { useNotesContext } from '@/context/NotesContext'
 import { BANKS } from '@/constants/banks'
 import { useTheme } from '@/context/ThemeContext'
 import { FONT_SIZE, FONT_WEIGHT, RADIUS, SPACING } from '@/constants/theme'
@@ -10,7 +10,7 @@ import { FONT_SIZE, FONT_WEIGHT, RADIUS, SPACING } from '@/constants/theme'
 export default function SlipDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { colors } = useTheme()
-  const { notes } = useNotes()
+  const { notes } = useNotesContext()
   const router = useRouter()
 
   const note = notes.find((n) => n.id === id)

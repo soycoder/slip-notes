@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import Toast from 'react-native-toast-message'
-import { useNotes } from '@/hooks/useNotes'
+import { useNotesContext } from '@/context/NotesContext'
 import { ColorPicker } from '@/components/notes/ColorPicker'
 import { TagChip } from '@/components/notes/TagChip'
 import { useTheme } from '@/context/ThemeContext'
@@ -21,7 +21,7 @@ import { FONT_SIZE, FONT_WEIGHT, RADIUS, SPACING } from '@/constants/theme'
 
 export default function NewNoteScreen() {
   const { colors } = useTheme()
-  const { createNote } = useNotes()
+  const { createNote } = useNotesContext()
   const router = useRouter()
 
   const [title, setTitle] = useState('')
