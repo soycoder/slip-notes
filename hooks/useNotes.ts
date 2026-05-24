@@ -18,12 +18,14 @@ export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
 
-  useEffect(() => {
+  const load = useCallback(() => {
     storage.loadNotes().then((loaded) => {
       setNotes(loaded)
       setIsLoaded(true)
     })
   }, [])
+
+  useEffect(() => { load() }, [])
 
   const persist = useCallback(async (updated: Note[], changed?: Note) => {
     setNotes(updated)
@@ -135,12 +137,15 @@ export function useNotes() {
     persist(updated)
   }, [notes, persist])
 
+  const reload = useCallback(() => { load() }, [load])
+
   return {
     notes,
     activeNotes,
     archivedNotes,
     trashedNotes,
     isLoaded,
+    reload,
     createNote,
     updateNote,
     deleteNote,

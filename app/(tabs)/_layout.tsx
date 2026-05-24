@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router'
 import { useTheme } from '@/context/ThemeContext'
+import { NotesProvider } from '@/context/NotesContext'
 import { Text } from 'react-native'
 
 function TabIcon({ label, emoji }: { label: string; emoji: string }) {
@@ -10,6 +11,7 @@ export default function TabLayout() {
   const { colors } = useTheme()
 
   return (
+    <NotesProvider>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -50,5 +52,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </NotesProvider>
   )
 }

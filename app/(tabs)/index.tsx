@@ -2,18 +2,19 @@ import { View, FlatList, StyleSheet, Text, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { useNotes } from '@/hooks/useNotes'
+import { useNotesContext } from '@/context/NotesContext'
 import { useSearch } from '@/hooks/useSearch'
 import { NoteCard } from '@/components/notes/NoteCard'
 import { SearchBar } from '@/components/ui/SearchBar'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { FAB } from '@/components/ui/FAB'
+import { NoteCardSkeleton } from '@/components/ui/LoadingSkeleton'
 import { useTheme } from '@/context/ThemeContext'
 import { SPACING, FONT_SIZE, FONT_WEIGHT } from '@/constants/theme'
 
 export default function NotesScreen() {
   const { colors, theme, toggle } = useTheme()
-  const { activeNotes, createNote, deleteNote, archiveNote, togglePin, isLoaded } = useNotes()
+  const { activeNotes, deleteNote, archiveNote, togglePin, isLoaded } = useNotesContext()
   const router = useRouter()
   const [query, setQuery] = useState('')
 
@@ -42,7 +43,11 @@ export default function NotesScreen() {
 
       <SearchBar value={query} onChangeText={setQuery} />
 
-      {isLoaded && sorted.length === 0 ? (
+      {!isLoaded ? (
+        <View style={styles.list}>
+          {[0, 1, 2].map((i) => <NoteCardSkeleton key={i} />)}
+        </View>
+      ) : sorted.length === 0 ? (
         <EmptyState
           emoji="📝"
           title={query ? 'No notes match your search' : 'No notes yet'}

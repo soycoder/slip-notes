@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import type { Note } from '@/types/note'
 import type { SlipData } from '@/types/slip'
-import { useNotes } from './useNotes'
+import { useNotesContext } from '@/context/NotesContext'
 
 export function useSlips() {
-  const notesApi = useNotes()
+  const notesApi = useNotesContext()
 
   const slips = useMemo(
     () => notesApi.notes.filter((n) => n.type === 'slip' && !n.isDeleted),

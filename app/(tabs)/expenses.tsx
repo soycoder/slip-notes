@@ -1,6 +1,6 @@
 import { View, Text, FlatList, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useNotes } from '@/hooks/useNotes'
+import { useNotesContext } from '@/context/NotesContext'
 import { useSlips } from '@/hooks/useSlips'
 import { useExpenses } from '@/hooks/useExpenses'
 import { SlipCard } from '@/components/slips/SlipCard'
@@ -11,7 +11,7 @@ import { FONT_SIZE, FONT_WEIGHT, RADIUS, SPACING } from '@/constants/theme'
 
 export default function ExpensesScreen() {
   const { colors } = useTheme()
-  const { deleteNote } = useNotes()
+  const { deleteNote } = useNotesContext()
   const { slips } = useSlips()
   const { months, totalAllTime, currentMonth, topBanks } = useExpenses(slips)
 

@@ -1,6 +1,6 @@
 import { View, FlatList, StyleSheet, Text, Pressable, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useNotes } from '@/hooks/useNotes'
+import { useNotesContext } from '@/context/NotesContext'
 import { NoteCard } from '@/components/notes/NoteCard'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useTheme } from '@/context/ThemeContext'
@@ -8,7 +8,7 @@ import { SPACING, FONT_SIZE, FONT_WEIGHT } from '@/constants/theme'
 
 export default function TrashScreen() {
   const { colors } = useTheme()
-  const { trashedNotes, deleteFromTrash, restoreFromTrash, emptyTrash } = useNotes()
+  const { trashedNotes, deleteFromTrash, restoreFromTrash, emptyTrash } = useNotesContext()
 
   function confirmEmptyTrash() {
     Alert.alert(
