@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Note, NoteColor, NoteType } from '@/types/note'
 import type { SlipData } from '@/types/slip'
 import { storage } from '@/lib/storage'
@@ -35,9 +35,9 @@ export function useNotes() {
     }
   }, [user])
 
-  const activeNotes = notes.filter((n) => !n.isArchived && !n.isDeleted)
-  const archivedNotes = notes.filter((n) => n.isArchived && !n.isDeleted)
-  const trashedNotes = notes.filter((n) => n.isDeleted)
+  const activeNotes = useMemo(() => notes.filter((n) => !n.isArchived && !n.isDeleted), [notes])
+  const archivedNotes = useMemo(() => notes.filter((n) => n.isArchived && !n.isDeleted), [notes])
+  const trashedNotes = useMemo(() => notes.filter((n) => n.isDeleted), [notes])
 
   const createNote = useCallback(
     (partial: {

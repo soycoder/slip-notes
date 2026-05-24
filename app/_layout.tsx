@@ -28,6 +28,7 @@ function AuthGate() {
       <Stack.Screen name="note/[id]" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="slip/capture" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="slip/[id]" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="settings" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
     </Stack>
   )
 }
