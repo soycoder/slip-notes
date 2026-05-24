@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "SlipNotes",
+    "slug": "slip-notes",
+    "version": "1.0.0",
+    "scheme": "slipnotes",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAFAF8"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.slipnotes.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "SlipNotes uses your camera to photograph bank transfer slips for expense tracking.",
+        "NSPhotoLibraryUsageDescription": "SlipNotes needs photo library access to import bank transfer slip images."
+      }
+    },
+    "android": {
+      "package": "com.slipnotes.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "backgroundColor": "#FAFAF8"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "SlipNotes needs access to your photos to import bank slips.",
+          "cameraPermission": "SlipNotes needs your camera to photograph bank slips."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "SlipNotes needs your camera to photograph bank slips."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

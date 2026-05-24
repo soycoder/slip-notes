@@ -3,38 +3,68 @@ export type Json =
   | number
   | boolean
   | null
-  | { [key: string]: Json }
+  | { [key: string]: Json | undefined }
   | Json[]
 
 export interface Database {
   public: {
     Tables: {
-      countries: {
+      notes: {
         Row: {
-          id: number
-          name: string
+          id: string
+          user_id: string
+          title: string
+          content: string
+          color: string
+          is_pinned: boolean
+          is_archived: boolean
+          is_deleted: boolean
+          deleted_at: string | null
+          tags: Json
+          type: string
+          slip_data: Json | null
+          slip_image_url: string | null
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          id?: number
-          name: string
+          id: string
+          user_id: string
+          title?: string
+          content?: string
+          color?: string
+          is_pinned?: boolean
+          is_archived?: boolean
+          is_deleted?: boolean
+          deleted_at?: string | null
+          tags?: Json
+          type?: string
+          slip_data?: Json | null
+          slip_image_url?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          id?: number
-          name?: string
+          id?: string
+          user_id?: string
+          title?: string
+          content?: string
+          color?: string
+          is_pinned?: boolean
+          is_archived?: boolean
+          is_deleted?: boolean
+          deleted_at?: string | null
+          tags?: Json
+          type?: string
+          slip_data?: Json | null
+          slip_image_url?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
     }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
   }
 }
