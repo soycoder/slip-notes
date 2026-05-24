@@ -1,175 +1,316 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from '@/styles/Home.module.css'
-import Supabase from '@/pages/supabase'
-import Tesseract from '@/public/lib/tesseract.js'
+import { useNotes } from '@/hooks/useNotes'
+import { useTheme } from '@/hooks/useTheme'
+import { useSearch } from '@/hooks/useSearch'
+import { Note, NoteView, SortOrder } from '@/types/note'
+import Header from '@/components/Header'
+import Sidebar from '@/components/Sidebar'
+import NoteCard from '@/components/NoteCard'
+import NoteEditor from '@/components/NoteEditor'
+import EmptyState from '@/components/EmptyState'
+import Toast, { useToast } from '@/components/Toast'
 
-const inter = Inter({ subsets: ['latin'] })
+export default function App() {
+  const {
+    activeNotes,
+    archivedNotes,
+    trash,
+    isLoaded,
+    createNote,
+    updateNote,
+    deleteNote,
+    archiveNote,
+    unarchiveNote,
+    togglePin,
+    restoreFromTrash,
+    deleteFromTrash,
+    emptyTrash,
+  } = useNotes()
 
-export default function Home() {
-  const [text, setText] = useState('')
-  const [imagePath, setImagePath] = useState('')
+  const { theme, toggle: toggleTheme } = useTheme()
+  const { msg: toastMsg, key: toastKey, show: showToast, clear: clearToast } = useToast()
 
-  // useEffect(() => {
-  // }, [])
+  const [view, setView] = useState<NoteView>('notes')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('updated')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeTag, setActiveTag] = useState('')
 
-  // @Function
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement> | null | undefined,
-  ) => {
-    setImagePath(URL.createObjectURL(event?.currentTarget?.files[0]))
+  // Keyboard shortcut: N to focus editor
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName.toLowerCase()
+      if (e.key === 'n' && tag !== 'input' && tag !== 'textarea') {
+        const ta = document.querySelector<HTMLTextAreaElement>('.note-editor-wrapper textarea')
+        ta?.focus()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
+  // Close sidebar on wider screens
+  useEffect(() => {
+    const handler = () => {
+      if (window.innerWidth > 768) setSidebarOpen(false)
+    }
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+
+  // Gather all tags from active notes
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>()
+    activeNotes.forEach((n) => n.tags.forEach((t) => tagSet.add(t)))
+    return Array.from(tagSet).sort()
+  }, [activeNotes])
+
+  // Which notes to show
+  const sourceNotes: Note[] = view === 'archive' ? archivedNotes : view === 'trash' ? trash : activeNotes
+
+  // Tag filter
+  const tagFilteredNotes = activeTag
+    ? sourceNotes.filter((n) => n.tags.includes(activeTag))
+    : sourceNotes
+
+  // Search filter
+  const searchedNotes = useSearch(tagFilteredNotes, searchQuery)
+
+  // Sort
+  const sortedNotes = useMemo(() => {
+    const pinned = searchedNotes.filter((n) => n.isPinned && !n.isArchived)
+    const rest = searchedNotes.filter((n) => !n.isPinned || n.isArchived)
+
+    const sortFn = (a: Note, b: Note) => {
+      if (sortOrder === 'title') return (a.title || a.content).localeCompare(b.title || b.content)
+      if (sortOrder === 'created') return b.createdAt.localeCompare(a.createdAt)
+      return b.updatedAt.localeCompare(a.updatedAt)
+    }
+
+    return view === 'notes' ? [...pinned.sort(sortFn), ...rest.sort(sortFn)] : searchedNotes.sort(sortFn)
+  }, [searchedNotes, sortOrder, view])
+
+  const handleCreateNote = (partial: { title: string; content: string; color: any; tags: string[] }) => {
+    if (!partial.title.trim() && !partial.content.trim()) return
+    createNote(partial)
+    showToast('Note saved')
   }
-  const handleClick = () => {
-    Tesseract.recognize(imagePath, 'eng', {
-      corePath: 'lib/tesseract.js-core/tesseract-core.wasm.js',
-      workerPath: 'lib/tesseract.js/dist/worker.min.js',
-      logger: (m) => console.log(m),
-    })
-      .catch((err) => {
-        console.error(err)
-      })
-      .then((result) => {
-        // Get Confidence score
-        // let confidence = result.confidence
-        console.log(result)
 
-        let text = result.data.text
-        setText(text)
-      })
+  const handleDelete = (id: string) => {
+    if (view === 'trash') {
+      deleteFromTrash(id)
+      showToast('Deleted permanently')
+    } else {
+      deleteNote(id)
+      showToast('Moved to trash')
+    }
   }
+
+  const handleArchive = (id: string) => {
+    archiveNote(id)
+    showToast('Note archived')
+  }
+
+  const handleUnarchive = (id: string) => {
+    unarchiveNote(id)
+    showToast('Note unarchived')
+  }
+
+  const handleRestore = (id: string) => {
+    restoreFromTrash(id)
+    showToast('Note restored')
+  }
+
+  const viewTitle = view === 'archive' ? 'Archive' : view === 'trash' ? 'Trash' : 'Notes'
 
   return (
     <>
       <Head>
-        <title>Create Next App</title>
-        <meta name="description" content="Generated by create next app" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>SlipNotes — Premium Slip Notes</title>
+        <meta name="description" content="SlipNotes: A beautiful, fast, offline-ready note-taking app for your best ideas." />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-        <h1 className={styles.center}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
 
-        <br />
-        <h3>Actual imagePath uploaded</h3>
-        <img src={imagePath} className="App-image" alt="logo" width="200px" />
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Header
+          view={view}
+          searchQuery={searchQuery}
+          onSearch={setSearchQuery}
+          theme={theme}
+          onThemeToggle={toggleTheme}
+          onMenuToggle={() => setSidebarOpen((v) => !v)}
+        />
 
-        <h3>Extracted text</h3>
-        <div className="text-box">
-          <p> {text} </p>
-        </div>
-        <input type="file" onChange={handleChange} />
-        <button onClick={handleClick} style={{ height: 50 }}>
-          convert to text
-        </button>
-        <br />
-
-        <Supabase />
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
+        <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+          {/* Sidebar */}
+          <div
+            style={{
+              width: sidebarOpen ? '220px' : '220px',
+              flexShrink: 0,
+              display: 'block',
+            }}
+            className="sidebar-container"
+          >
+            <Sidebar
+              view={view}
+              onViewChange={(v) => { setView(v); setSearchQuery(''); setActiveTag('') }}
+              notesCount={activeNotes.length}
+              archiveCount={archivedNotes.length}
+              trashCount={trash.length}
+              allTags={allTags}
+              activeTag={activeTag}
+              onTagFilter={setActiveTag}
+              isOpen={sidebarOpen}
             />
           </div>
+
+          {/* Main content */}
+          <main style={{ flex: 1, padding: '24px 24px 80px', minWidth: 0 }}>
+            {/* New note editor (only on notes view) */}
+            {view === 'notes' && !searchQuery && (
+              <NoteEditor onSave={handleCreateNote} />
+            )}
+
+            {/* View header */}
+            <div style={{
+              maxWidth: '680px',
+              margin: '0 auto 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {searchQuery ? (
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    {sortedNotes.length} result{sortedNotes.length !== 1 ? 's' : ''} for &ldquo;{searchQuery}&rdquo;
+                  </span>
+                ) : (
+                  <>
+                    {activeTag && (
+                      <span
+                        className="tag-chip"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setActiveTag('')}
+                      >
+                        #{activeTag} ×
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Sort selector */}
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--text-muted)',
+                    background: 'transparent',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '6px',
+                    padding: '4px 8px',
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="updated">Last edited</option>
+                  <option value="created">Date created</option>
+                  <option value="title">Title A–Z</option>
+                </select>
+
+                {/* Trash empty button */}
+                {view === 'trash' && trash.length > 0 && (
+                  <button
+                    onClick={() => { emptyTrash(); showToast('Trash emptied') }}
+                    style={{
+                      fontSize: '12px',
+                      color: '#EF4444',
+                      background: 'transparent',
+                      border: '1px solid #FECACA',
+                      borderRadius: '6px',
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Empty trash
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Notes grid */}
+            {!isLoaded ? (
+              <LoadingSkeleton />
+            ) : sortedNotes.length === 0 ? (
+              <EmptyState view={view} searchQuery={searchQuery} />
+            ) : (
+              <div className="notes-masonry" style={{ maxWidth: 'none' }}>
+                {sortedNotes.map((note) => (
+                  <div key={note.id} className="fade-in">
+                    <NoteCard
+                      note={note}
+                      searchQuery={searchQuery}
+                      onUpdate={updateNote}
+                      onDelete={handleDelete}
+                      onArchive={handleArchive}
+                      onUnarchive={handleUnarchive}
+                      onTogglePin={togglePin}
+                      onRestore={handleRestore}
+                      isTrash={view === 'trash'}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </main>
         </div>
+      </div>
 
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
+      {/* Toast notification */}
+      {toastMsg && <Toast key={toastKey} message={toastMsg} onDone={clearToast} />}
 
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .sidebar-container {
+            position: fixed !important;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            z-index: 50;
+            transform: ${sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'};
+            transition: transform 0.25s ease;
+          }
+        }
+      `}</style>
     </>
+  )
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="notes-masonry">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          style={{
+            borderRadius: '12px',
+            background: 'var(--border-color)',
+            height: i % 3 === 0 ? '160px' : i % 2 === 0 ? '100px' : '130px',
+            marginBottom: '16px',
+            opacity: 0.4,
+            animation: 'pulse 1.5s ease-in-out infinite',
+          }}
+        />
+      ))}
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.2; }
+        }
+      `}</style>
+    </div>
   )
 }
