@@ -1,9 +1,8 @@
 import { Tabs } from 'expo-router'
 import { useTheme } from '@/context/ThemeContext'
-import { NotesProvider } from '@/context/NotesContext'
 import { Text } from 'react-native'
 
-function TabIcon({ label, emoji }: { label: string; emoji: string }) {
+function TabIcon({ emoji }: { emoji: string }) {
   return <Text style={{ fontSize: 20 }}>{emoji}</Text>
 }
 
@@ -11,7 +10,6 @@ export default function TabLayout() {
   const { colors } = useTheme()
 
   return (
-    <NotesProvider>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -27,31 +25,30 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Notes',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📝" label="Notes" />,
+          tabBarIcon: () => <TabIcon emoji="📝" />,
         }}
       />
       <Tabs.Screen
         name="archive"
         options={{
           title: 'Archive',
-          tabBarIcon: (_p) => <TabIcon emoji="📦" label="Archive" />,
+          tabBarIcon: () => <TabIcon emoji="📦" />,
         }}
       />
       <Tabs.Screen
         name="trash"
         options={{
           title: 'Trash',
-          tabBarIcon: (_p) => <TabIcon emoji="🗑️" label="Trash" />,
+          tabBarIcon: () => <TabIcon emoji="🗑️" />,
         }}
       />
       <Tabs.Screen
         name="expenses"
         options={{
           title: 'Expenses',
-          tabBarIcon: (_p) => <TabIcon emoji="💳" label="Expenses" />,
+          tabBarIcon: () => <TabIcon emoji="💳" />,
         }}
       />
     </Tabs>
-    </NotesProvider>
   )
 }

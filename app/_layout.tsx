@@ -1,15 +1,16 @@
 import { useEffect } from 'react'
-import { Stack, useRouter, useSegments } from 'expo-router'
+import { Stack, useSegments } from 'expo-router'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { StyleSheet } from 'react-native'
 import Toast from 'react-native-toast-message'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
+import { NotesProvider } from '@/context/NotesContext'
 
 function AuthGate() {
   const { session, isLoading } = useAuth()
   const segments = useSegments()
-  const router = useRouter()
+
 
   useEffect(() => {
     if (isLoading) return
@@ -38,8 +39,10 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <AuthProvider>
         <ThemeProvider>
-          <AuthGate />
-          <Toast />
+          <NotesProvider>
+            <AuthGate />
+            <Toast />
+          </NotesProvider>
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
