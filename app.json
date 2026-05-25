@@ -52,7 +52,8 @@
         {
           "cameraPermission": "SlipNotes needs your camera to photograph bank slips."
         }
-      ]
+      ],
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true
