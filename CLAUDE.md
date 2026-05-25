@@ -4,14 +4,27 @@ A React Native / Expo app for capturing Thai bank transfer slips via OCR, organi
 
 ---
 
+## Package manager
+
+This project uses **pnpm**. Always use `pnpm` instead of `npm` or `yarn`.
+
+```bash
+pnpm install       # Install dependencies
+pnpm add <pkg>     # Add a dependency
+pnpm add -D <pkg>  # Add a dev dependency
+```
+
+---
+
 ## Quick commands
 
 ```bash
-npm start          # Expo dev server (scan QR with Expo Go)
-npm run android    # Launch on Android emulator / device
-npm run ios        # Launch on iOS simulator / device
-npm test           # Jest test suite
-npm run update-types  # Regenerate Supabase TypeScript types (requires PROJECT_ID env var)
+pnpm start          # Expo dev server (scan QR with Expo Go)
+pnpm android        # Launch on Android emulator / device
+pnpm ios            # Launch on iOS simulator / device
+pnpm test           # Jest test suite
+pnpm e2e            # Playwright end-to-end tests (requires dev server at :8081)
+pnpm update-types   # Regenerate Supabase TypeScript types (requires PROJECT_ID env var)
 ```
 
 ---
